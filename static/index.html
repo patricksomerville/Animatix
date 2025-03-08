@@ -1,0 +1,197 @@
+< !DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anima: Scene Visualization</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/d3@7"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        function ConnectionStatus({ status }) {
+            return (
+                <div className={`connection-status ${status}`}>
+                    {status === 'connected' ? 'Connected' : 'Disconnected'}
+                </div>
+            );
+        }
+
+        function App() {
+            const [data, setData] = React.useState({
+                characters: {},
+                scene: null,
+                scriptText: ""
+            });
+            const [connectionStatus, setConnectionStatus] = React.useState('disconnected');
+            const wsRef = React.useRef(null);
+
+            const connectWebSocket = React.useCallback(() => {
+                if (wsRef.current?.readyState === WebSocket.OPEN) return;
+
+                const ws = new WebSocket('ws://localhost:8000/ws/monitor');
+                wsRef.current = ws;
+
+                ws.onopen = () => {
+                    console.log('WebSocket connected');
+                    setConnectionStatus('connected');
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        if (message.type === 'character_update') {
+                            setData(prevData => ({
+                                ...prevData,
+                                characters: {
+                                    ...prevData.characters,
+                                    [message.name]: message.metrics
+                                }
+                            }));
+                        } else if (message.type === 'scene_update') {
+                            setData(prevData => ({
+                                ...prevData,
+                                scene: message.metrics
+                            }));
+                        } else if (message.type === 'history') {
+                            setData({
+                                characters: message.characters || {},
+                                scene: message.scene?.[message.scene.length - 1] || null
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error parsing WebSocket data:', error);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    setConnectionStatus('disconnected');
+                };
+
+                ws.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    setConnectionStatus('disconnected');
+                    setTimeout(connectWebSocket, 3000);
+                };
+
+                return () => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.close();
+                    }
+                };
+            }, []);
+
+            React.useEffect(() => {
+                connectWebSocket();
+
+                const pingInterval = setInterval(() => {
+                    if (wsRef.current?.readyState === WebSocket.OPEN) {
+                        wsRef.current.send('ping');
+                    }
+                }, 30000);
+
+                return () => {
+                    clearInterval(pingInterval);
+                    if (wsRef.current?.readyState === WebSocket.OPEN) {
+                        wsRef.current.close();
+                    }
+                };
+            }, [connectWebSocket]);
+
+            return (
+                <div className="dashboard-container">
+                    <ConnectionStatus status={connectionStatus} />
+                    <div className="panel">
+                        <h2>Scene Overview</h2>
+                        {data.scene ? (
+                            <div>
+                                <div className="metric-panel">
+                                    <h3>Tension</h3>
+                                    <div className="value-display">
+                                        {(data.scene.tension * 100).toFixed(0)}%
+                                    </div>
+                                </div>
+                                <div className="metric-panel">
+                                    <h3>Power Gradient</h3>
+                                    <div className="value-display">
+                                        {data.scene.power_gradient.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div className="metric-panel">
+                                    <h3>Beat Progression</h3>
+                                    <div className="beat-progression">
+                                        {data.scene.beat_progression.map((beat, index) => (
+                                            <div 
+                                                key={index}
+                                                className="beat"
+                                                style={{
+                                                    height: `${Math.abs(beat) * 100}%`,
+                                                    backgroundColor: beat > 0 ? '#2196F3' : '#F44336'
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div>No scene data available</div>
+                        )}
+                    </div>
+
+                    <div className="panel">
+                        <h2>Characters</h2>
+                        <div className="character-list">
+                            {Object.entries(data.characters).map(([name, metrics]) => (
+                                <div key={name} className="character-card">
+                                    <div className="character-details">
+                                        <h3>{name}</h3>
+                                        <div className="character-metrics">
+                                            {[
+                                                { label: 'Power Level', value: metrics.power_level },
+                                                { label: 'Emotional Intensity', value: metrics.emotional_intensity },
+                                                { label: 'Gesture Frequency', value: metrics.gesture_frequency },
+                                                { label: 'Gaze Stability', value: metrics.gaze_stability },
+                                                { label: 'Dialogue Pace', value: metrics.dialogue_pace }
+                                            ].map(({ label, value }) => (
+                                                <div key={label} className="character-metric">
+                                                    <label>{label}</label>
+                                                    <div className="meter">
+                                                        <div 
+                                                            className="meter-fill"
+                                                            style={{
+                                                                width: `${label === 'Power Level' 
+                                                                    ? ((value + 1) / 2) * 100 
+                                                                    : value * 100}%`
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="panel">
+                        <h2>Script Input</h2>
+                        <textarea 
+                            className="script-input" 
+                            placeholder="Paste your script here..."
+                        />
+                        <button className="send-button">Analyze Script</button>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

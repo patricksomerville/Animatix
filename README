@@ -1,0 +1,257 @@
+# Anima: AI-Driven Scene Visualization System
+- Uses GPT-4 for nuanced understanding of character relationships
+- Provides intelligent suggestions for power dynamic visualization
+
+## Core Vision
+
+**Anima: Revolutionizing Scene Visualization with AI**
+
+Anima is a cutting-edge AI-driven system meticulously engineered to transform written scenes into compelling animatics. By harnessing the power of Large Language Models and advanced AI, Anima achieves a profound understanding of narrative nuances, visualizing not just the action, but also the intricate emotional subtext, power dynamics, and dramatic turns inherent in storytelling. 
+
+**Key Highlights:**
+
+- **Deep Emotional and Power Dynamic Analysis:** Anima goes beyond surface-level interpretation, leveraging LLMs to dissect and visualize the subtle emotional undercurrents and power shifts within scenes.
+- **Intelligent Scene Enhancement:**  From suggesting context-aware emotional progressions to predicting and amplifying dramatic moments, Anima acts as a creative partner, enhancing the storytelling process.
+
+## Quick Start
+- Uses AI to predict and enhance dramatic moments
+- Suggests optimal timing for scene turns
+
+### Prerequisites
+- Python 3.8+
+- OpenAI API key
+- PostgreSQL (optional, for vector storage)
+- GPT-4 powered scene understanding
+- Intelligent text autocompletion
+- Context-aware scene improvement suggestions
+
+### Setup
+1. Clone the repository
+2. Copy `.env.example` to `.env` and configure your environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Start the server:
+   ```bash
+   uvicorn server:app --reload
+   ```
+5. Open `http://localhost:8000` in your browser to access the monitoring dashboard
+6. Leverage LLM capabilities thoughtfully
+7. Balance automation with creative control
+
+### Environment Configuration
+Key environment variables:
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `PORT`: Server port (default: 8000)
+- `ENABLE_LLM_ENHANCEMENT`: Enable/disable LLM features
+- `ENABLE_AUTOCOMPLETION`: Enable/disable text autocompletion
+- See `.env.example` for all options
+
+## Key Features
+
+### 1. Real-Time Monitoring Dashboard
+- Power dynamics visualization with gradient overlays
+- Emotional state tracking with animated indicators
+- Performance metrics with progress bars
+- Scene tension monitoring with dynamic meters
+- WebSocket-based real-time updates
+- Connection status indicator
+- Historical data tracking
+
+### 2. LLM-Enhanced Power Dynamics Analysis
+- Tracks character power levels and their fluctuations
+- Identifies dominance shifts and character status changes
+- Translates power dynamics into visual composition and camera angles
+- Influences performance direction and sound design
+
+### 3. AI-Powered Emotional Architecture
+- Analyzes emotional subtext in dialogue and action
+- Maps emotional intensity to cinematographic choices
+- Modulates sound design based on emotional undercurrents
+- Controls pacing and shot duration through emotional beats
+
+### 4. Enhanced Scene Turn Detection
+- Identifies pivotal moments in scenes
+- Recognizes setup and payoff structures
+- Tracks tension buildup and release
+- Orchestrates visual and audio elements around turns
+
+### 5. Integrated Storytelling Elements
+- Visual Composition: Uses cinematographic rules (Rule of Thirds, Golden Ratio) based on scene dynamics
+- Sound Design: Creates layered soundscapes that enhance emotional impact
+- Performance Direction: Guides character positioning and movement
+- Scene Rhythm: Controls pacing through shot selection and duration
+
+## System Architecture
+
+### Pipeline (pipeline.py)
+- Central coordination of scene analysis and generation
+- Integration of visual, audio, and performance elements
+- Scene beat breakdown and timing control
+
+### Monitor (monitor.py)
+- Real-time WebSocket-based monitoring
+- Performance metrics tracking
+- Scene tension analysis
+- Historical data management
+- Connection handling with rate limiting
+
+### Storyboard Engine (storyboard.py)
+- Shot composition and framing
+- Camera movement planning
+- Character blocking and positioning
+- Visual style management
+
+### Sound Design (sound_design.py)
+- Dynamic soundscape generation
+- Emotional underscore creation
+- Character-specific audio treatment
+- Ambient and environmental sound design
+
+### Scene Mechanics (scene_mechanics.py)
+- Scene turn analysis
+- Power dynamics tracking
+- Beat structure management
+- Tension curve mapping
+
+### Director Presets (director_presets.py)
+- Visual style templates
+- Sound design preferences
+- Camera movement patterns
+- Scene emphasis techniques
+
+### Performance Control (performance.py)
+- Character movement direction
+- Emotional expression guidance
+- Interaction choreography
+- Timing and pacing control
+
+## Core Goals
+
+1. **Emotional Authenticity**
+   - Capture the emotional truth of scenes
+   - Maintain consistent character arcs
+   - Honor subtext and unspoken elements
+
+2. **Visual Sophistication**
+   - Dynamic camera work tied to scene emotion
+   - Thoughtful composition and framing
+   - Meaningful visual metaphors
+
+3. **Audio Integration**
+   - Emotionally resonant soundscapes
+   - Character-driven audio design
+   - Strategic use of silence and sound
+
+4. **Seamless Assembly**
+   - Smooth scene transitions
+   - Consistent visual language
+   - Cohesive storytelling flow
+
+## Technical Implementation
+
+### Advanced Script Analysis
+- NLP-based scene parsing (spaCy)
+- Emotion detection in dialogue
+- Action and movement extraction
+- Scene structure analysis
+
+### Visual Generation
+- Shot composition engine
+- Camera movement calculation
+- Character blocking system
+- Visual style application
+
+### Audio Processing
+- Dynamic soundscape generation
+- Dialogue treatment
+- Score integration
+- Environmental sound design
+
+### Performance Direction
+- Character movement planning
+- Interaction choreography
+- Emotional expression control
+- Timing and rhythm management
+
+## New Features
+
+### 1. LLM Integration
+- Deep scene understanding using GPT-4
+- Intelligent text autocompletion
+- Context-aware scene improvements
+- Enhanced emotional and power dynamics analysis
+
+### 2. Modern Visual Interface
+- Sophisticated real-time monitoring dashboard
+- Dynamic visual feedback
+- Smooth animations and transitions
+- Responsive design for all screen sizes
+
+### 3. Intelligent Autocompletion
+- Context-aware text suggestions
+- Style-consistent completions
+- Multiple alternative suggestions
+- Confidence-based selection
+
+### 4. Scene Improvements
+- AI-powered shot suggestions
+- Lighting and composition recommendations
+- Sound design enhancements
+- Performance direction insights
+
+## Future Development
+
+1. **Advanced AI Integration**
+   - Multi-model scene understanding
+   - Real-time scene optimization
+   - Adaptive learning from feedback
+
+2. **Advanced Visual Tools**
+   - More sophisticated camera movements
+   - Enhanced character animation
+   - Expanded shot library
+
+3. **Refined Audio System**
+   - More detailed soundscapes
+   - Better emotional scoring
+   - Enhanced spatial audio
+
+4. **Improved Integration**
+   - Smoother scene assembly
+   - Better transition handling
+   - More cohesive storytelling
+
+## Usage Tips
+
+### Effective Use of AI Features
+1. **Text Autocompletion**
+   - Type naturally and let the AI suggest completions
+   - Use Tab to accept suggestions
+   - Request alternatives with Alt+Enter
+
+2. **Scene Improvements**
+   - Review AI suggestions in the dashboard
+   - Accept or modify recommendations
+   - Combine multiple suggestions for best results
+
+3. **Visual Monitoring**
+   - Watch real-time power dynamics
+   - Monitor emotional coherence
+   - Track scene tension progression
+
+## For AI Collaborators
+When working on this system, remember:
+1. Focus on emotional truth over technical perfection
+2. Consider power dynamics in all aspects
+3. Think in terms of scene turns and momentum
+4. Integrate visual and audio elements meaningfully
+5. Maintain consistent character perspectives
+6. Honor the unspoken elements of scenes
+
+The goal is not just to visualize scenes, but to capture their emotional essence and dramatic power in a way that serves the larger story.
