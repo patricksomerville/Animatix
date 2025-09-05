@@ -47,7 +47,17 @@ class SceneBeat:
 
 class AnimaticPipeline:
     def __init__(self):
-        self.nlp = spacy.load("en_core_web_trf")
+        # Load spaCy with graceful fallbacks to avoid heavy model requirements
+        try:
+            self.nlp = spacy.load("en_core_web_trf")
+        except Exception:
+            try:
+                self.nlp = spacy.load("en_core_web_sm")
+            except Exception:
+                # Final fallback: blank English with sentencizer
+                self.nlp = spacy.blank("en")
+                if "sentencizer" not in self.nlp.pipe_names:
+                    self.nlp.add_pipe("sentencizer")
         self.scene_beats: List[SceneBeat] = []
         self.characters: Dict[str, Character] = {}
         self.llm_processor = LLMProcessor()
@@ -66,6 +76,14 @@ class AnimaticPipeline:
         
         # Extract scene elements with LLM insights
         self._extract_characters(doc, scene_analysis)
+        # Fallback: ensure at least one character exists
+        if not self.characters:
+            self.characters["Protagonist"] = Character(
+                name="Protagonist",
+                emotional_state="neutral",
+                power_level=0.5,
+                position={"x": 0, "y": 0, "z": 0}
+            )
         await self._analyze_power_dynamics(doc, scene_analysis)
         await self._generate_shot_sequence(scene_analysis)
         self._design_soundscape(scene_analysis)
@@ -102,8 +120,8 @@ class AnimaticPipeline:
     
     def _extract_characters(self, doc, scene_analysis: SceneAnalysis) -> None:
         """Extract and initialize characters from script with LLM-enhanced understanding"""
-        for ent in doc.ents:
-            if ent.label_ == "CHARACTER" and ent.text not in self.characters:
+        for ent in getattr(doc, "ents", []):
+            if ent.label_ == "PERSON" and ent.text not in self.characters:
                 # Use emotional context from LLM analysis
                 emotional_context = scene_analysis.emotional_context.get(ent.text, {})
                 initial_power = next(
@@ -120,7 +138,7 @@ class AnimaticPipeline:
     
     async def _analyze_power_dynamics(self, doc, scene_analysis: SceneAnalysis) -> None:
         """Analyze character interactions and power shifts with LLM enhancement"""
-        from monitor import monitor, PerformanceMetrics, SceneMetrics
+        from monitor import monitor
         
         power_shifts = []
         emotional_states = []
@@ -143,13 +161,13 @@ class AnimaticPipeline:
                 power_shifts.append(shift)
                 
                 # Update character metrics with enhanced understanding
-                metrics = PerformanceMetrics(
-                    power_level=char.power_level,
-                    emotional_intensity=abs(shift) * 2,
-                    gesture_frequency=0.5 if abs(shift) > 0.2 else 0.2,
-                    gaze_stability=0.9 if char.power_level > 0.7 else 0.5,
-                    dialogue_pace=1.0 + (char.power_level - 0.5)
-                )
+                metrics = {
+                    "power_level": float(char.power_level),
+                    "emotional_intensity": float(min(1.0, abs(shift) * 2)),
+                    "gesture_frequency": float(0.5 if abs(shift) > 0.2 else 0.2),
+                    "gaze_stability": float(0.9 if char.power_level > 0.7 else 0.5),
+                    "dialogue_pace": float(max(0.0, min(1.0, 1.0 + (char.power_level - 0.5))))
+                }
                 monitor.update_character_metrics(char_name, metrics)
                 
                 # Track emotional states with LLM enhancement
@@ -157,12 +175,12 @@ class AnimaticPipeline:
                 emotional_states.append(emotion)
                 
         # Update scene-level metrics
-        scene_metrics = SceneMetrics(
-            tension=monitor.calculate_tension(power_shifts),
-            power_gradient=max(abs(ps) for ps in power_shifts) if power_shifts else 0,
-            emotional_coherence=monitor.calculate_coherence(emotional_states),
-            beat_progression=power_shifts
-        )
+        scene_metrics = {
+            "tension": float(monitor.calculate_tension(power_shifts)),
+            "power_gradient": float(max(abs(ps) for ps in power_shifts) if power_shifts else 0.0),
+            "emotional_coherence": float(monitor.calculate_coherence(emotional_states)),
+            "beat_progression": [float(x) for x in power_shifts]
+        }
         monitor.update_scene_metrics(scene_metrics)
     
     async def _generate_shot_sequence(self, scene_analysis: SceneAnalysis) -> None:
@@ -244,32 +262,38 @@ class AnimaticPipeline:
     
     def _calculate_power_shift(self, sent, char_name: str) -> float:
         """Calculate power dynamics shift using:
-        - Verb transitivity patterns
-        - Sentence mood (imperative/declarative)
-        - Semantic role labeling
+        Lightweight heuristics that don't rely on custom spaCy extensions.
+        Factors:
+        - Character grammatical role (subject gets slight boost)
+        - Presence of strong modal/imperative cues
+        - Scene position weighting
         """
         power_delta = 0.0
         
         # Analyze grammatical structure
-        for token in sent:
-            if token.text == char_name:
-                # Check grammatical role
-                if token.dep_ in ['nsubj', 'nsubjpass']:
-                    power_delta += 0.1 if 'subj' in token.dep_ else -0.05
-                
-                # Check verb transitivity
-                if token.head.pos_ == 'VERB':
-                    if token.head._.power_verb_type == 'dominance':
-                        power_delta += 0.15
-                    elif token.head._.power_verb_type == 'submission':
-                        power_delta -= 0.1
-        
-        # Check sentence type        
-        if sent._.sentiment['polarity'] > 0.3:
-            power_delta += 0.07 * sent._.sentiment['intensity']
+        try:
+            for token in sent:
+                if token.text == char_name:
+                    # Grammatical role
+                    if token.dep_ in ['nsubj', 'nsubjpass']:
+                        power_delta += 0.08
+                    elif token.dep_ in ['dobj', 'pobj']:
+                        power_delta -= 0.05
+
+            # Modal/imperative cues
+            text_lower = sent.text.lower()
+            if any(m in text_lower for m in ["must", "have to", "need to", "now", "do it", "listen"]):
+                power_delta += 0.05
+            if any(m in text_lower for m in ["please", "maybe", "perhaps", "could you"]):
+                power_delta -= 0.03
+        except Exception:
+            power_delta += 0.0
         
         # Apply scene position weighting
-        position_weight = 1.0 - (sent.start_char / len(sent.doc.text))
+        try:
+            position_weight = 1.0 - (sent.start_char / max(1, len(sent.doc.text)))
+        except Exception:
+            position_weight = 1.0
         return round(power_delta * position_weight, 2)
     
     def _determine_shot_type(self, char: Character) -> ShotType:
@@ -303,6 +327,46 @@ class AnimaticPipeline:
     def _fallback_emotion(self, sent):
         """Fallback emotion detection"""
         return "neutral"
+
+    async def _calculate_emotion_with_llm(self, sent, char_name: str) -> str:
+        """Lightweight async wrapper for emotion; avoid heavy dependencies."""
+        try:
+            return self._calculate_emotion(sent)
+        except Exception:
+            return "neutral"
+
+    def _parse_shot_type(self, text: str) -> Optional[ShotType]:
+        """Parse a shot type enum from free-form text."""
+        t = (text or "").lower()
+        if any(k in t for k in ["extreme close", "ecu", "extreme_close"]):
+            return ShotType.EXTREME_CLOSE
+        if any(k in t for k in ["close", "cu"]):
+            return ShotType.CLOSE
+        if any(k in t for k in ["wide", "ws"]):
+            return ShotType.WIDE
+        if "dutch" in t:
+            return ShotType.DUTCH
+        if any(k in t for k in ["overhead", "top down", "bird"]):
+            return ShotType.OVERHEAD
+        if "pov" in t:
+            return ShotType.POV
+        if "medium" in t or "ms" in t:
+            return ShotType.MEDIUM
+        return None
+
+    def _apply_scene_improvements(self, suggestions: List[str]) -> None:
+        """Apply simple heuristics based on suggestions to tweak beats."""
+        if not self.scene_beats:
+            return
+        text = "\n".join(suggestions or [])
+        for beat in self.scene_beats:
+            if "dolly-in" in text or "dolly in" in text:
+                beat.shot.camera_movement = beat.shot.camera_movement or "dolly_in"
+            if "tighter" in text or "close-up" in text or "close up" in text:
+                if beat.shot.type == ShotType.MEDIUM:
+                    beat.shot.type = ShotType.CLOSE
+            if "slower" in text or "linger" in text:
+                beat.shot.duration = min(6.0, beat.shot.duration + 1.0)
 
 # Usage example:
 if __name__ == "__main__":

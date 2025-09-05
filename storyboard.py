@@ -125,7 +125,7 @@ class StoryboardEngine:
     ) -> CompositionRule:
         """Select appropriate composition rule based on scene context"""
         if scene_tension > 0.8:
-            return CompositionRule.DUTCH  # Tension through dutch angles
+            return CompositionRule.DIAGONAL  # Use diagonals to imply tension
         elif emotional_intensity > 0.7:
             return CompositionRule.FRAME_WITHIN_FRAME  # Claustrophobic framing
         elif character_count > 2:
