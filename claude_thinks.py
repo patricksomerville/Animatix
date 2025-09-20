@@ -71,7 +71,16 @@ class SceneAnalyzer:
     """Advanced scene analysis engine with deep psychological insight"""
     
     def __init__(self):
-        self.nlp = spacy.load("en_core_web_trf")
+        # Robust spaCy loading with fallbacks
+        try:
+            self.nlp = spacy.load("en_core_web_trf")
+        except Exception:
+            try:
+                self.nlp = spacy.load("en_core_web_sm")
+            except Exception:
+                self.nlp = spacy.blank("en")
+                if "sentencizer" not in self.nlp.pipe_names:
+                    self.nlp.add_pipe("sentencizer")
         self.scene_context: Optional[SceneContext] = None
         self.character_intents: Dict[str, CharacterIntent] = {}
         self.subtext_layers: List[SubtextLayer] = []

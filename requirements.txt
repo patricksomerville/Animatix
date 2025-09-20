@@ -16,3 +16,4 @@ tiktoken>=0.5.1
 tenacity>=8.2.3
 aiohttp>=3.9.1
 async-timeout>=4.0.3
+spacy>=3.7.2
