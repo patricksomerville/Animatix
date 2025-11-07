@@ -62,7 +62,7 @@ class LLMProcessor:
             except Exception:
                 self.text_embedder = None
 
-        self.encoding = tiktoken.get_encoding("cl100k_base")
+        self.encoding = self._load_token_encoder()
         self._client = None
         if _openai_available and OPENAI_API_KEY:
             try:
@@ -246,3 +246,19 @@ class LLMProcessor:
 
         suggestions = [s.strip("- •\t ") for s in (text or "").split('\n') if s.strip()]
         return suggestions or ["Use tighter coverage and motivated camera moves."]
+
+    def _load_token_encoder(self):
+        """Attempt to load tiktoken encoder with graceful offline fallback."""
+
+        class _FallbackEncoder:
+            """Simple hashing-based encoder used when tiktoken assets are unavailable."""
+
+            def encode(self, text: str):
+                if not text:
+                    return []
+                return [abs(hash(token)) % 10000 for token in text.split()]
+
+        try:
+            return tiktoken.get_encoding("cl100k_base")
+        except Exception:
+            return _FallbackEncoder()
