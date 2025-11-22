@@ -287,11 +287,13 @@ class SceneAnalyzer:
     def _track_emotional_progression(self, doc) -> None:
         """Track emotional changes through the scene"""
         self.emotional_history = []
-        
-        for i, sent in enumerate(doc.sents):
-            time_point = i / len(list(doc.sents))
+
+        sentences = list(doc.sents)
+
+        for i, sent in enumerate(sentences):
+            time_point = i / len(sentences)
             emotional_state = {}
-            
+
             # Analyze emotion in sentence
             for char in self.character_intents.keys():
                 if char in sent.text:
@@ -328,16 +330,18 @@ class SceneAnalyzer:
     def _identify_dramatic_beats(self, doc) -> List[Dict[str, Any]]:
         """Identify and analyze dramatic beats in the scene"""
         beats = []
-        
-        for i, sent in enumerate(doc.sents):
+
+        sentences = list(doc.sents)
+
+        for i, sent in enumerate(sentences):
             # Check for dramatic significance
             power_shift = self._detect_power_shift(sent)
             emotional_change = self._detect_emotional_change(sent)
             revelation = self._detect_revelation(sent)
-            
+
             if power_shift or emotional_change or revelation:
                 beats.append({
-                    "position": i / len(list(doc.sents)),
+                    "position": i / len(sentences),
                     "type": "power_shift" if power_shift else 
                            "emotional_change" if emotional_change else 
                            "revelation",
